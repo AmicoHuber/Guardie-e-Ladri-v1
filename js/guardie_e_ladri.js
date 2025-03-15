@@ -2,11 +2,12 @@
 let mosse = 0;
 
 //mi sposto nelle 4 direzioni
-//il ladro si muove anche se tento una mossa illegale
+//il ladro si muove anche se la guardia una mossa illegale
 function spostaNord() {
     let sopraGuardia = document.getElementById("guardia").style.top;
     //dist almeno 50 px dal bordo superiore
     sopraGuardia = Number(sopraGuardia.substring(0, sopraGuardia.length - 2)) - 50;
+    //aggiorno la posizione solo se la destinazione mi lascia dentro i margini
     if (sopraGuardia >= 0) {
         document.getElementById("guardia").style.top = sopraGuardia + "px";
     };
@@ -48,56 +49,69 @@ function spostaLadro() {
     let sopraLadro = document.getElementById("ladro").style.top;
     let sxLadro = document.getElementById("ladro").style.left;
 
-    //scelta casuale di uno tra quattro
-    let direzione = Math.floor(Math.random() * 4);
-    //muovo di 50px in direzione casuale legale, altrimenti ritento
+    //per la direzione casuale
+    let direzione;
+
+    //guardia che modifico solo se effettuo una mossa legale
+    //(unica circostanza che mi porta ad uscire dal ciclo)
+    //torna 1 ogni volta che tento di spostare il ladro
+    let illegale = 1;
     
-    switch (direzione) {
-        case 0:
-            sopraLadro = Number(sopraLadro.substring(0, sopraLadro.length - 2)) - 50;
-            if (sopraLadro >= 0) {
-                document.getElementById("ladro").style.top = sopraLadro + "px";
-            } else {
-                spostaLadro();
-            };
-            victoryCheck();
-            break;
-        case 1:
-            sopraLadro = Number(sopraLadro.substring(0, sopraLadro.length - 2)) + 50;
-            if (sopraLadro < 452) {
-                document.getElementById("ladro").style.top = sopraLadro + "px";
-            } else {
-                spostaLadro();
-            };
-            victoryCheck();
-            break;
-        case 2:
-            sxLadro = Number(sxLadro.substring(0, sxLadro.length - 2)) - 50;
-            if (sxLadro >= 0) {
-                document.getElementById("ladro").style.left = sxLadro + "px";
-            } else {
-                spostaLadro();
-            };
-            victoryCheck();
-            break;
-        case 3:
-            sxLadro = Number(sxLadro.substring(0, sxLadro.length - 2)) + 50;
-            if (sxLadro < 452) {
-                document.getElementById("ladro").style.left = sxLadro + "px";
-            } else {
-                spostaLadro();
-            };
-            victoryCheck();
-            break;
-        default:
-            alert("Errore");
-    }
-}
+    while (illegale == 1) {
+        //riassegno ad ogni passaggio
+        sopraLadro = document.getElementById("ladro").style.top;
+        sxLadro = document.getElementById("ladro").style.left;
+        //nuova ricerca di una mossa, nuovo intero casuale
+        direzione = Math.floor(Math.random() * 4);
+        //in base a quell'int, scelgo la direzione
+        switch (direzione) {
+            case 0:
+                //assegno al valore temporaneo di sopraLadro la nuova coordinata
+                sopraLadro = Number(sopraLadro.substring(0, sopraLadro.length - 2)) - 50;
+                //e, se costituisce un valore legale,
+                if (sopraLadro >= 0) {
+                    //modifico il CSS
+                    document.getElementById("ladro").style.top = sopraLadro + "px";
+                    //e notifico l'avvenimento di una mossa legale
+                    illegale = 0;
+                };
+                //se invece non ho effettuato una mossa legale, ricomincio
+                break;
+            case 1:
+                sopraLadro = Number(sopraLadro.substring(0, sopraLadro.length - 2)) + 50;
+                if (sopraLadro < 452) {
+                 document.getElementById("ladro").style.top = sopraLadro + "px";
+                illegale = 0;
+                };
+                break;
+            case 2:
+                sxLadro = Number(sxLadro.substring(0, sxLadro.length - 2)) - 50;
+                if (sxLadro >= 0) {
+                    document.getElementById("ladro").style.left = sxLadro + "px";
+                    illegale = 0;
+                };
+                break;
+            case 3:
+                sxLadro = Number(sxLadro.substring(0, sxLadro.length - 2)) + 50;
+                if (sxLadro < 452) {
+                    document.getElementById("ladro").style.left = sxLadro + "px";
+                    illegale = 0;
+                };
+                break;
+            default: 
+                alert("errore");
+        };
+    };
+    //chiamo victoryCheck solo una volta uscito dal while
+    //ovvero solo quando ho spostato Ladro in maniera legale
+    victoryCheck();
+};
 
 //invoco dopo avere spostato il ladro
 function victoryCheck() {
     //si sono mossi entrambi
     mosse++;
+
     //stampo il numero di mosse aggiornato
     document.getElementById("mosse").innerText = "Mosse: " + mosse;
 
@@ -136,8 +150,7 @@ function spegniTasti() {
     document.getElementById("est").disabled = true;
 }
 
-//verifica vittoria: sono uguali le distanze da bordo superiore ed sx
-//poi, se le mosse sono 20 e non sono coincidenti, ho perso e disattivo i tasti
+//attivo i tasti
 document.getElementById("nord").addEventListener("click", spostaNord);
 document.getElementById("sud").addEventListener("click", spostaSud);
 document.getElementById("ovest").addEventListener("click", spostaOvest);
